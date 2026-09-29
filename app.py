@@ -4,7 +4,6 @@ from datetime import date
 from classeviva import Session
 from twilio.rest import Client
 
-# Riferimento diretto al file logo caricato nella cartella del progetto GitHub
 LOGO_FILE = "logo.png"
 
 st.set_page_config(
@@ -14,7 +13,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Stile CSS avanzato: Sfondi bianchi solidi, contrasto assoluto in nero/blu scuro, font grandi al 150-200%
 custom_css = """
     <head>
         <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,7 +26,6 @@ custom_css = """
     .viewerBadge_container__1QSob {display: none !important;}
     div[data-testid="stToolbar"] {display: none !important;}
     
-    /* Sfondo generale fisso e pulito */
     html, body, [data-testid="stAppViewContainer"] {
         background: #f1f5f9;
         background-image: linear-gradient(rgba(241, 245, 249, 0.95), rgba(241, 245, 249, 0.95)), 
@@ -39,7 +36,6 @@ custom_css = """
         overflow-x: hidden;
     }
 
-    /* Tipografia ingrandita e colori ad altissimo contrasto */
     html, body, [class*="css"] {
         font-size: 1.35rem !important;
         color: #000000 !important;
@@ -55,7 +51,6 @@ custom_css = """
         font-weight: 700 !important;
     }
 
-    /* Card principale a sfondo bianco solido opaco */
     section.main > div {
         background-color: #ffffff !important;
         padding: 2.5rem;
@@ -66,7 +61,6 @@ custom_css = """
         margin-bottom: 2rem;
     }
 
-    /* Pulsanti grandi, moderni e ad alto contrasto */
     .stButton>button {
         border-radius: 12px;
         font-size: 1.45rem !important;
@@ -83,7 +77,6 @@ custom_css = """
         background-color: #0369a1 !important;
     }
 
-    /* Campi di input con sfondi chiari solidi e testo in nero pieno */
     input, select, textarea {
         font-size: 1.35rem !important;
         background-color: #f8fafc !important;
@@ -93,7 +86,6 @@ custom_css = """
         border: 2px solid #64748b !important;
     }
     
-    /* Etichette dei campi in grassetto nerissimo */
     .stTextInput label, .stSelectbox label, .stDateInput label, .stNumberInput label, .stRadio label {
         font-weight: 900 !important;
         color: #0b132b !important;
@@ -145,7 +137,6 @@ else:
 
     st.markdown("---")
 
-    # ================= NAVIGAZIONE ORIZZONTALE A CASELLE IN ALTO =================
     col_b1, col_b2, col_b3, col_b4 = st.columns(4)
 
     with col_b1:
@@ -182,7 +173,6 @@ else:
         except Exception as e:
             return False, str(e)
 
-    # ================= SEZIONE 1: PAGAMENTI, SCADENZE & AUTO CON FOTOCAMERA =================
     if menu == "💳 Pagamenti, Scadenze & Auto":
         st.subheader("💳 Pagamenti, Scadenze & Gestione Auto")
         st.write("Usa la fotocamera per scannerizzare bollette o codici, oppure seleziona l'ambito desiderato.")
@@ -256,7 +246,6 @@ else:
                         else:
                             st.warning(f"Errore invio WhatsApp: {res}")
 
-    # ================= SEZIONE 2: APPUNTAMENTI =================
     elif menu == "📅 Appuntamenti":
         st.subheader("📅 Gestione Appuntamenti")
         titolo_appunt = st.text_input("Oggetto / Titolo Appuntamento")
@@ -275,7 +264,6 @@ else:
             else:
                 st.error("Inserisci un titolo.")
 
-    # ================= SEZIONE 3: SCUOLA (CLASSEVIVA) =================
     elif menu == "🏫 Scuola (ClasseViva)":
         st.subheader("🏫 Integrazione Scolastica (ClasseViva)")
         cv_user = st.text_input("Username ClasseViva")
@@ -295,7 +283,6 @@ else:
                 except Exception as e:
                     st.error(f"Errore di autenticazione: {e}")
 
-    # ================= SEZIONE 4: RESOCONTO SPESE =================
     elif menu == "📊 Resoconto Spese":
         st.subheader("📊 Resoconto Finanziario Mensile")
         if "spese_db" not in st.session_state:
