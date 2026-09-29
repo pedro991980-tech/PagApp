@@ -14,12 +14,6 @@ st.set_page_config(
 )
 
 custom_css = """
-    <head>
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-        <meta name="apple-mobile-web-app-title" content="PagApp">
-        <link rel="apple-touch-icon" href="logo.png">
-    </head>
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
@@ -29,7 +23,7 @@ custom_css = """
     html, body, [data-testid="stAppViewContainer"] {
         background: #f1f5f9;
         background-image: linear-gradient(rgba(241, 245, 249, 0.95), rgba(241, 245, 249, 0.95)), 
-                          url("https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1920&q=80");
+                          url("[https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1920&q=80](https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1920&q=80)");
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
@@ -93,6 +87,7 @@ custom_css = """
     }
     </style>
 """
+
 st.markdown(custom_css, unsafe_allow_html=True)
 
 if "avviato" not in st.session_state:
