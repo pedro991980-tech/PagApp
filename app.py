@@ -8,19 +8,18 @@ from twilio.rest import Client
 LOGO_FILE = "logo.png"
 
 st.set_page_config(
-    page_title="PagApp - Gestione Appuntamenti e Pagamenti",
+    page_title="PagApp",
     page_icon=LOGO_FILE,
     layout="centered",
     initial_sidebar_state="collapsed"
 )
 
-# Iniezione dinamica dei meta tag PWA e Apple Touch Icon nel documento principale
+# Iniezione dinamica dei meta tag per forzare il nome "PagApp" su Browser e iOS (PWA)
 pwa_ios_injection = """
     <script>
     const doc = window.parent.document;
-    doc.title = "PagApp - Gestione Appuntamenti e Pagamenti";
+    doc.title = "PagApp";
     
-    // Imposta il nome per la schermata Home di iOS
     let metaTitle = doc.querySelector('meta[name="apple-mobile-web-app-title"]');
     if (!metaTitle) {
         metaTitle = doc.createElement('meta');
@@ -29,7 +28,6 @@ pwa_ios_injection = """
     }
     metaTitle.content = "PagApp";
 
-    // Abilita la modalità web app a schermo intero su iOS
     let metaCap = doc.querySelector('meta[name="apple-mobile-web-app-capable"]');
     if (!metaCap) {
         metaCap = doc.createElement('meta');
@@ -124,21 +122,32 @@ custom_css = """
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
+# Inizializzazione degli Stati di Sessione (CRM Cliente integrato)
 if "avviato" not in st.session_state:
     st.session_state.avviato = False
 
 if "menu_attivo" not in st.session_state:
     st.session_state.menu_attivo = "💳 Pagamenti, Scadenze & Auto"
 
+if "cliente_nome" not in st.session_state:
+    st.session_state.cliente_nome = ""
+if "cliente_cognome" not in st.session_state:
+    st.session_state.cliente_cognome = ""
+if "cliente_whatsapp" not in st.session_state:
+    st.session_state.cliente_whatsapp = "+39"
+if "cliente_codice" not in st.session_state:
+    st.session_state.cliente_codice = ""
+
 if "scansione_desc" not in st.session_state:
     st.session_state.scansione_desc = ""
 if "scansione_imp" not in st.session_state:
     st.session_state.scansione_imp = 0.0
 
+# ================= HOMEPAGE: ONBOARDING & PROFILAZIONE CLIENTE =================
 if not st.session_state.avviato:
     st.markdown("<h1 style='text-align: center;'>💼 PagApp</h1>", unsafe_allow_html=True)
-    st.markdown("<h3 style='text-align: center;'>Gestione Appuntamenti e Pagamenti</h3>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>Il tuo assistente professionale integrato per pagamenti, veicoli, scuola e spese con notifiche WhatsApp.</p>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center; color: #0284c7;'>Gestione Appuntamenti e Pagamenti</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center;'>Inserisci i dati del cliente per configurare l'account e abilitare le notifiche istantanee.</p>", unsafe_allow_html=True)
     
     col_1, col_2, col_3 = st.columns([1, 2, 1])
     with col_2:
@@ -146,10 +155,31 @@ if not st.session_state.avviato:
             st.image(LOGO_FILE, use_container_width=True)
         except:
             st.info("Logo in caricamento...")
-        st.write("")
-        if st.button("🚀 Entra in PagApp", type="primary"):
+    
+    st.markdown("---")
+    st.subheader("📋 Profilo Cliente & Riferimento Notifiche")
+    
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        in_nome = st.text_input("Nome Cliente", value=st.session_state.cliente_nome, placeholder="Es. Mario")
+        in_tel = st.text_input("Numero WhatsApp (per notifiche)", value=st.session_state.cliente_whatsapp, placeholder="+393331234567")
+    with col_c2:
+        in_cognome = st.text_input("Cognome Cliente", value=st.session_state.cliente_cognome, placeholder="Es. Rossi")
+        in_codice = st.text_input("Codice Fiscale o Riferimento", value=st.session_state.cliente_codice, placeholder="RSSMRA...")
+
+    st.write("")
+    if st.button("🚀 Avvia PagApp & Registra", type="primary"):
+        if not in_nome or not in_tel:
+            st.error("Inserisci almeno il Nome e il Numero WhatsApp per procedere.")
+        else:
+            st.session_state.cliente_nome = in_nome
+            st.session_state.cliente_cognome = in_cognome
+            st.session_state.cliente_whatsapp = in_tel
+            st.session_state.cliente_codice = in_codice
             st.session_state.avviato = True
             st.rerun()
+
+# ================= AREA INTERNA / HUB PRINCIPALE =================
 else:
     col_head1, col_head2, col_head3 = st.columns([1, 4, 1])
     with col_head1:
@@ -158,14 +188,15 @@ else:
         except:
             pass
     with col_head2:
-        st.markdown("### 💼 PagApp Hub")
+        st.markdown(f"### 💼 PagApp Hub — Cliente: {st.session_state.cliente_nome} {st.session_state.cliente_cognome}")
     with col_head3:
-        if st.button("🏠 Home"):
+        if st.button("🔄 Profilo"):
             st.session_state.avviato = False
             st.rerun()
 
     st.markdown("---")
 
+    # ================= NAVIGAZIONE ORIZZONTALE A CASELLE IN ALTO =================
     col_b1, col_b2, col_b3, col_b4 = st.columns(4)
 
     with col_b1:
@@ -188,7 +219,9 @@ else:
     TWILIO_ACCOUNT_SID = "IL_TUO_SID_QUI"
     TWILIO_AUTH_TOKEN = "IL_TUO_TOKEN_QUI"
     TWILIO_FROM_PHONE = "whatsapp:+14155238886"
-    TWILIO_TO_PHONE = "+393331234567"
+    
+    # Destinatario Twilio legato al numero inserito in fase di onboarding cliente
+    TWILIO_TO_PHONE = f"whatsapp:{st.session_state.cliente_whatsapp}"
 
     def invia_notifica_whatsapp(testo):
         try:
@@ -202,9 +235,10 @@ else:
         except Exception as e:
             return False, str(e)
 
+    # ================= SEZIONE 1: PAGAMENTI, SCADENZE & AUTO CON FOTOCAMERA =================
     if menu == "💳 Pagamenti, Scadenze & Auto":
         st.subheader("💳 Pagamenti, Scadenze & Gestione Auto")
-        st.write("Usa la fotocamera per scannerizzare bollette o codici, oppure seleziona l'ambito desiderato.")
+        st.write(f"Operatività associata al cliente: **{st.session_state.cliente_nome} {st.session_state.cliente_cognome}**")
 
         usa_fotocamera = st.checkbox("📷 Attiva fotocamera per riconoscimento automatico")
 
@@ -236,6 +270,7 @@ else:
                 else:
                     messaggio = (
                         f"💼 *PagApp - Pagamento Eseguito*\n"
+                        f"• Cliente: {st.session_state.cliente_nome} {st.session_state.cliente_cognome}\n"
                         f"• Categoria: {categoria}\n"
                         f"• Descrizione: {descrizione}\n"
                         f"• Importo: €{importo:.2f}\n"
@@ -243,7 +278,7 @@ else:
                     )
                     successo, res = invia_notifica_whatsapp(messaggio)
                     if successo:
-                        st.success("Pagamento registrato e notifica inviata con successo su WhatsApp!")
+                        st.success(f"Pagamento registrato e notifica inviata a {st.session_state.cliente_whatsapp}!")
                         st.balloons()
                     else:
                         st.warning(f"Registrato, ma errore WhatsApp: {res}")
@@ -264,6 +299,7 @@ else:
                     else:
                         msg_auto = (
                             f"🚗 *PagApp - Pagamento Auto*\n"
+                            f"• Cliente: {st.session_state.cliente_nome} {st.session_state.cliente_cognome}\n"
                             f"• Targa: {targa}\n"
                             f"• Voce: {voce_auto}\n"
                             f"• Importo: €{importo_auto:.2f}\n"
@@ -275,6 +311,7 @@ else:
                         else:
                             st.warning(f"Errore invio WhatsApp: {res}")
 
+    # ================= SEZIONE 2: APPUNTAMENTI =================
     elif menu == "📅 Appuntamenti":
         st.subheader("📅 Gestione Appuntamenti")
         titolo_appunt = st.text_input("Oggetto / Titolo Appuntamento")
@@ -284,15 +321,16 @@ else:
 
         if st.button("Salva Appuntamento e Notifica", type="primary"):
             if titolo_appunt:
-                messaggio_app = f"📅 *PagApp - Promemoria Appuntamento*\n• Oggetto: {titolo_appunt} ({categoria_appunt})\n• Data: {data_appunt} ore {ora_appunt}"
+                messaggio_app = f"📅 *PagApp - Promemoria Appuntamento*\n• Cliente: {st.session_state.cliente_nome} {st.session_state.cliente_cognome}\n• Oggetto: {titolo_appunt} ({categoria_appunt})\n• Data: {data_appunt} ore {ora_appunt}"
                 successo, res = invia_notifica_whatsapp(messaggio_app)
                 if successo:
-                    st.success("Appuntamento salvato e notificato!")
+                    st.success("Appuntamento salvato e notificato via WhatsApp!")
                 else:
                     st.warning(f"Errore WhatsApp: {res}")
             else:
                 st.error("Inserisci un titolo.")
 
+    # ================= SEZIONE 3: SCUOLA (CLASSEVIVA) =================
     elif menu == "🏫 Scuola (ClasseViva)":
         st.subheader("🏫 Integrazione Scolastica (ClasseViva)")
         cv_user = st.text_input("Username ClasseViva")
@@ -306,12 +344,13 @@ else:
                     ses = Session()
                     ses.login(cv_user, cv_pass)
                     st.success("Connessione stabilita!")
-                    successo, res = invia_notifica_whatsapp("🏫 *PagApp - ClasseViva*: Accesso effettuato con successo!")
+                    successo, res = invia_notifica_whatsapp(f"🏫 *PagApp - ClasseViva*: Accesso effettuato per {st.session_state.cliente_nome} {st.session_state.cliente_cognome}!")
                     if successo:
                         st.success("Notifica WhatsApp inviata!")
                 except Exception as e:
                     st.error(f"Errore di autenticazione: {e}")
 
+    # ================= SEZIONE 4: RESOCONTO SPESE =================
     elif menu == "📊 Resoconto Spese":
         st.subheader("📊 Resoconto Finanziario Mensile")
         if "spese_db" not in st.session_state:
